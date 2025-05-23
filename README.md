@@ -13,4 +13,24 @@
 
 ## Project Description
 
-Birthday Logg is a simple project that stores birthday dates for the user to look at. 
+![Project Description](README_assets/description.svg)
+
+## Project Images
+
+### Login Page
+
+![Login Page](README_assets/login.png)
+
+### Home Page
+
+![Home Page](README_assets/homepage.png)
+
+## Future Updates
+
+<ul>
+    <li><h4>Add a simple about page to give users the reason/impetus behind this project</h4></li>
+    <li><h4>Implement remote database connection with PostgreSQL and Supabase</h3></li>
+    <li><h4>Create OAuth 2.0 implementation for google workspace connectedness</h4></li>
+    <li><h4>Enable API calls to google calendar to automatically add calendar events</h4></li>
+    <li><h4>Deploy group labeling functionality to allow categorizing of birthdays</h4></li>
+</ul>

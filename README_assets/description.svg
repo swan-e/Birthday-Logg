@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="200">
+  <!-- Logo image (hosted externally or locally in repo) -->
+  <image href="https://raw.githubusercontent.com/swan-e/Birthday-Logg/3fd2f2c2d908de3352c9489fd59ea4bb3dae6058/project_folder/static/img/bdaylog.png" x="40" y="15" height="150"/>
+
+  <!-- Text to the right of the image -->
+  <text x="170" y="50" font-family="Segoe UI, Tahoma, sans-serif" font-size="20" fill="#6a737d">
+    <tspan font-weight="bold" font-size="21">Birthday Logg</tspan>
+    <tspan x="170" dy="1.4em">Birthday Logg is a simple project that allows</tspan>
+    <tspan x="170" dy="1.2em">users to store birthdays of family, friends, others.</tspan>
+    <tspan x="170" dy="1.2em">It stores data in a local SQLite DB via Flask,</tspan>
+    <tspan x="170" dy="1.2em">and serves it with classic HTML/CSS/JS.</tspan>
+  </text>
+</svg>
