@@ -13,4 +13,4 @@
 
 ## Project Description
 
-Birthday Logg a simple project that stores birthday dates for the user to look at. 
+Birthday Logg is a simple project that stores birthday dates for the user to look at. 

@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Edit "{{ post['title'] }}"{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  <form method="post">
+    <label for="title">Title</label>
+    <input name="title" id="title"
+      value="{{ request.form['title'] or post['title'] }}" required>
+    <br>
+    <label for="body">Body</label>
+    <textarea name="body" id="body">{{ request.form['body'] or post['body'] }}</textarea>
+    <br>
+    <label for="bday">Enter Birthday:</label>
+    {% set selected_month = request.form.get('birthdate[month]') or post['birthmonth'] %}
+    <select id="birth-month" name="birthdate[month]">
+      <option value="1" {% if selected_month == '1' %}selected{% endif %}>Janurary</option>
+      <option value="2" {% if selected_month == '2' %}selected{% endif %}>February</option>
+      <option value="3" {% if selected_month == '3' %}selected{% endif %}>March</option>
+      <option value="4" {% if selected_month == '4' %}selected{% endif %}>April</option>
+      <option value="5" {% if selected_month == '5' %}selected{% endif %}>May</option>
+      <option value="6" {% if selected_month == '6' %}selected{% endif %}>June</option>
+      <option value="7" {% if selected_month == '7' %}selected{% endif %}>July</option>
+      <option value="8" {% if selected_month == '8' %}selected{% endif %}>August</option>
+      <option value="9" {% if selected_month == '9' %}selected{% endif %}>September</option>
+      <option value="10" {% if selected_month == '10' %}selected{% endif %}>October</option>
+      <option value="11" {% if selected_month == '11' %}selected{% endif %}>November</option>
+      <option value="12" {% if selected_month == '12' %}selected{% endif %}>December</option>
+    </select> 
+
+    <select id="birth-day" name="birthdate[day]">
+      {% for num in range(1, 32) %}
+      <option value={{num}} {% if (request.form.get('birthdate[day]') or post['birthday']|string) == num|string %}selected{% endif %}>{{num}}</option>
+      {% endfor %}
+    </select>
+    <select id="birth-year" name="birthdate[year]">
+      {% for num in range(now.year - 55, now.year + 1) %}
+      <option value={{num}} {% if (request.form.get('birthdate[year]') or post['birthyear']|string) == num|string %}selected{% endif %}>{{num}}</option>
+      {% endfor %}
+    </select>
+    <br>
+    <input type="submit" value="Save">
+  </form> 
+  <form action="{{ url_for('bday.delete', id=post['id']) }}" method="post">
+    <input class="danger" type="submit" value="Delete" onclick="return confirm('Are you sure?');">
+  </form>
+{% endblock %}

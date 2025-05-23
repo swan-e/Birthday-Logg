@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="utf-8" />
+    <title>Birthday Logg - Never Forget A Birthday</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/globals.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kranky&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <main class="intro">
+      <div class="overlap-group-wrapper">
+        <div class="overlap-group">
+          <div class="rectangle" aria-hidden="true"></div>
+          <div class = "logo">
+            <h1 class="birthday-logg">Birthday Logg</h1>
+          </div>
+          <img class="bday-background" src="{{ url_for('static', filename='img/bdaylog.png') }}" alt="Calendar illustration" />
+          
+          <div class="auth">
+            {% block content %}
+            <ul class="auth-links">
+              <li><a href="{{ url_for('auth.register') }}">Register</a>
+              <li><a href="{{ url_for('auth.login') }}">Log In</a>
+            </ul>
+            {% endblock %}
+          </div>
+          </a>
+      
+          
+        </div>
+        <p class="tagline">Never Forget A Birthday</p>
+      </div>
+    </main>
+  </body>
+</html>
