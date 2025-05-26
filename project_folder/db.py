@@ -1,44 +1,30 @@
-import sqlite3
+import psycopg2
 from datetime import datetime
 
 import click
+import psycopg
+
 from flask import current_app, g
+from psycopg_pool import ConnectionPool
+
+pool = None
+
+# adding connection pooling
+def init_app(app):
+    global pool
+    pool = ConnectionPool(conninfo=app.config['SUPABASE_DB_URL'], min_size=1, max_size=10)
+    app.teardown_appcontext(close_db)
 
 def get_db():
     if 'db' not in g:
         # flask --app project_folder init-db 
         # ^ the above is how to start up the local db
-        g.db = sqlite3.connect(
-            current_app.config['DATABASE'],
-            detect_types=sqlite3.PARSE_DECLTYPES
-        )
-        g.db.row_factory = sqlite3.Row
-
+        g.db = pool.getconn()
+        with g.db.cursor() as cur:
+            cur.execute('SET search_path TO logg')
     return g.db
 
 def close_db(e=None):
     db = g.pop('db', None)
-
     if db is not None:
-        db.close()
-
-def init_db():
-    db = get_db()
-
-    with current_app.open_resource('schema.sql') as f:
-        db.executescript(f.read().decode('utf8'))
-
-@click.command('init-db')
-def init_db_command():
-    """Clear the existing data and create new tables."""
-    init_db()
-    click.echo('Initialized the database.')
-
-
-sqlite3.register_converter(
-    "timestamp", lambda v: datetime.fromisoformat(v.decode())
-)
-
-def init_app(app):
-    app.teardown_appcontext(close_db)
-    app.cli.add_command(init_db_command)
+        pool.putconn(db)
