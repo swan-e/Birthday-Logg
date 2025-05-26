@@ -7,6 +7,9 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from project_folder.db import get_db
 
+import psycopg
+from psycopg.rows import dict_row
+
 bp = Blueprint('auth', __name__, url_prefix='/auth')
 
 @bp.route('/register', methods=('GET','POST'))
@@ -16,7 +19,9 @@ def register():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        db = get_db()
+        conn = get_db()
+        print(id(conn))
+
         error = None
 
         # non empty validation
@@ -30,12 +35,13 @@ def register():
                 # this is a standard SQL query that inserts the tuple of 
                 # username and password into the database
                 # WARNING: password should never be stored in the database directly
-                db.execute(
-                    "INSERT INTO user (username, password) VALUES (?, ?)",
-                    (username, generate_password_hash(password)),
-                )
-                db.commit()
-            except db.IntegrityError:
+                with conn.cursor(row_factory=dict_row) as cur:
+                    cur.execute(
+                        "INSERT INTO logg.users (username, password) VALUES (%s, %s)",
+                        (username, generate_password_hash(password)),
+                    )
+                    conn.commit()
+            except conn.IntegrityError:
                 error = f"User {username} is already registered."
             else:
                 return redirect(url_for("auth.login"))
@@ -51,11 +57,13 @@ def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        db = get_db()
+        conn = get_db()
+        print(id(conn))
         error = None
-        user = db.execute(
-            'SELECT * FROM user WHERE username = ?', (username,)
-        ).fetchone()
+
+        with conn.cursor(row_factory=dict_row) as cur:
+            cur.execute('SELECT username, password, id FROM logg.users WHERE username = %s', (username,))
+            user = cur.fetchone()
 
         if user is None:
             error = 'Incorrect username.'
@@ -76,11 +84,13 @@ def load_logged_in_user():
     user_id = session.get('user_id')
 
     if user_id is None:
-        g.user = None
+        g.users = None
     else:
-        g.user = get_db().execute(
-            'SELECT * FROM user WHERE id = ?', (user_id,)
-        ).fetchone()
+        conn = get_db()
+        print(id(conn))
+        with conn.cursor(row_factory=dict_row) as cur:
+            cur.execute('SELECT * FROM logg.users WHERE id = %s', (user_id,))
+            g.user = cur.fetchone()
 
 @bp.route('/logout')
 def logout():

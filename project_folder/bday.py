@@ -4,8 +4,10 @@ from flask import (
 from werkzeug.exceptions import abort
 
 from project_folder.auth import login_required
-from project_folder.db import get_db
+from project_folder.db import get_db, pool
 
+import psycopg
+from psycopg.rows import dict_row
 
 bp = Blueprint('bday', __name__)
 
@@ -16,15 +18,17 @@ def intro():
 @bp.route('/home', methods = ('GET', 'POST'))
 @login_required
 def index():
-    db = get_db()
+    conn = get_db()
+    print(id(conn))
+
     tab = request.args.get('tab') or request.form.get('tab')
 
     if request.method == 'POST':
         title = request.form['title']
         body = request.form['body']
-        birthday = request.form['birthdate[day]']
-        birthmonth = request.form['birthdate[month]']
-        birthyear = request.form['birthdate[year]']
+        birthday = int(request.form['birthdate[day]'])
+        birthmonth = int(request.form['birthdate[month]'])
+        birthyear = int(request.form['birthdate[year]'])
 
         error = None
 
@@ -34,12 +38,13 @@ def index():
         if error is not None:
             flash(error)
         else:
-            db.execute(
-                'INSERT INTO post (title, body, birthday, birthmonth, birthyear, author_id)'
-                ' VALUES (?, ?, ?, ?, ?, ?)',
-                (title, body, birthday, birthmonth, birthyear, g.user['id'])
-            )
-            db.commit()
+            with conn.cursor(row_factory=dict_row) as cur:
+                cur.execute(
+                    'INSERT INTO logg.birthdays (title, body, birthday, birthmonth, birthyear, author_id)'
+                    ' VALUES (%s, %s, %s, %s, %s, %s)',
+                    (title, body, birthday, birthmonth, birthyear, g.user['id'])
+                )
+                conn.commit()
             flash('Post created successfully!')
             return redirect(url_for('bday.index', tab=tab))
 
@@ -62,58 +67,55 @@ def index():
 
     query = '''
         SELECT p.id, title, body, birthday, birthmonth, birthyear, created, author_id, username
-        FROM post p
-        JOIN user u ON p.author_id = u.id
+        FROM logg.birthdays p
+        JOIN logg.users u ON p.author_id = u.id
     '''
 
     params = []
 
     if birthmonth:
-        query += ' WHERE birthmonth = ?'
+        query += ' WHERE birthmonth = %s'
         params.append(birthmonth)
     query += ' ORDER BY created DESC'
-    posts = db.execute(query, params).fetchall()
 
-    #old query
-    '''
-    posts = db.execute(
-        'SELECT p.id, title, body, birthday, birthmonth, birthyear, created, author_id, username'
-        ' FROM post p JOIN user u ON p.author_id = u.id'
-        ' ORDER BY created DESC'
-    ).fetchall()
-    '''
+    with conn.cursor(row_factory=dict_row) as cur:
+        cur.execute(query, params)
+        birthdays = cur.fetchall()
 
-    return render_template('bday/index.html', posts=posts, tab=tab)
+    return render_template('bday/index.html', birthdays=birthdays, tab=tab)
 
-def get_post(id, check_author=True):
-    post = get_db().execute(
-        'SELECT p.id, title, body, birthday, birthmonth, birthyear, created, author_id, username'
-        ' FROM post p JOIN user u ON p.author_id = u.id'
-        ' WHERE p.id = ?',
-        (id,)
-    ).fetchone()
+def get_birthday(id, check_author=True):
+    conn = get_db()
+    with conn.cursor(row_factory=dict_row) as cur:
+        cur.execute(
+            'SELECT p.id, title, body, birthday, birthmonth, birthyear, created, author_id, username '
+            'FROM logg.birthdays p JOIN logg.users u ON p.author_id = u.id '
+            'WHERE p.id = %s',
+            (id,)
+        )
+        birthdays = cur.fetchone()
 
-    if post is None:
-        abort(404, f"Post id {id} doesn't exist.")
+    if birthdays is None:
+        abort(404, f"Birthday id {id} doesn't exist.")
 
-    if check_author and post['author_id'] != g.user['id']:
+    if check_author and birthdays['author_id'] != g.user['id']:
         abort(403)
 
-    return post
+    return birthdays
 
 
 @bp.route('/<int:id>/update', methods=('GET', 'POST'))
 @login_required
 def update(id):
-    post = get_post(id)
+    birthdays = get_birthday(id)
     tab = request.args.get('tab') or request.form.get('tab')
 
     if request.method == 'POST':
         title = request.form['title']
         body = request.form['body']
-        birthday = request.form['birthdate[day]']
-        birthmonth = request.form['birthdate[month]']
-        birthyear = request.form['birthdate[year]']
+        birthday = int(request.form['birthdate[day]'])
+        birthmonth = int(request.form['birthdate[month]'])
+        birthyear = int(request.form['birthdate[year]'])
         error = None
 
         if not title:
@@ -122,22 +124,24 @@ def update(id):
         if error is not None:
             flash(error)
         else:
-            db = get_db()
-            db.execute(
-                'UPDATE post SET title = ?, body = ?, birthday = ?, birthmonth = ?, birthyear = ?'
-                ' WHERE id = ?',
-                (title, body, birthday, birthmonth, birthyear, id)
-            )
-            db.commit()
+            conn = get_db()
+            with conn.cursor(row_factory=dict_row) as cur:
+                cur.execute(
+                    'UPDATE logg.birthdays SET title = %s, body = %s, birthday = %s, birthmonth = %s, birthyear = %s'
+                    ' WHERE id = %s',
+                    (title, body, birthday, birthmonth, birthyear, id)
+                )
+                conn.commit()
             return redirect(url_for('bday.index', tab=tab))
 
-    return render_template('bday/update.html', post=post, tab=tab)
+    return render_template('bday/update.html', birthdays=birthdays, tab=tab)
 
 @bp.route('/<int:id>/delete', methods=('POST',))
 @login_required
 def delete(id):
-    get_post(id)
-    db = get_db()
-    db.execute('DELETE FROM post WHERE id = ?', (id,))
-    db.commit()
+    get_birthday(id)
+    conn = get_db()
+    with conn.cursor(row_factory=dict_row) as cur:
+        cur.execute('DELETE FROM logg.birthdays WHERE id = %s', (id,))
+        conn.commit()
     return redirect(url_for('bday.index'))
