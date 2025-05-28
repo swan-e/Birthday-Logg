@@ -6,7 +6,7 @@
     <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
     <a href="https://github.com/swan-e">My Github</a>
     <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
-    <a href="">MISC</a>
+    <a href="https://supabase.com/">Supabase</a>
     <br />
     <hr />
 </div>
