@@ -62,6 +62,7 @@ async def index():
 @login_required
 async def api_birthdays():
     conn = await get_db()
+    user_id = g.user['id']
     tab = request.args.get('tab', 'all').lower()
 
     month_map = {
@@ -74,8 +75,9 @@ async def api_birthdays():
         SELECT p.id, title, body, birthday, birthmonth, birthyear, created, author_id, username
         FROM logg.birthdays p
         JOIN logg.users u ON p.author_id = u.id
+        WHERE p.author_id = $1
     '''
-    params = []
+    params = [user_id]
     if birthmonth:
         query += ' WHERE birthmonth = $1'
         params.append(birthmonth)
@@ -161,7 +163,7 @@ async def update(id):
 async def delete(id):
     await get_birthday(id)
     conn = await get_db()
-    
+
     try:
         await conn.execute(
             'DELETE FROM logg.birthdays WHERE id = $1',
