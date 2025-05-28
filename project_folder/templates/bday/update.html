@@ -5,45 +5,102 @@
 {% endblock %}
 
 {% block content %}
-  <form method="post">
+  <form id="update-form" data-id="{{ birthdays['id'] }}">
     <label for="title">Title</label>
-    <input name="title" id="title"
-      value="{{ request.form['title'] or birthdays['title'] }}" required>
+    <input name="title" id="title" value="{{ birthdays['title'] }}" required>
     <br>
     <label for="body">Body</label>
-    <textarea name="body" id="body">{{ request.form['body'] or birthdays['body'] }}</textarea>
+    <textarea name="body" id="body">{{ birthdays['body'] }}</textarea>
     <br>
     <label for="bday">Enter Birthday:</label>
-    {% set selected_month = request.form.get('birthdate[month]') or birthdays['birthmonth'] %}
+
     <select id="birth-month" name="birthdate[month]">
-      <option value="1" {% if selected_month == '1' %}selected{% endif %}>Janurary</option>
-      <option value="2" {% if selected_month == '2' %}selected{% endif %}>February</option>
-      <option value="3" {% if selected_month == '3' %}selected{% endif %}>March</option>
-      <option value="4" {% if selected_month == '4' %}selected{% endif %}>April</option>
-      <option value="5" {% if selected_month == '5' %}selected{% endif %}>May</option>
-      <option value="6" {% if selected_month == '6' %}selected{% endif %}>June</option>
-      <option value="7" {% if selected_month == '7' %}selected{% endif %}>July</option>
-      <option value="8" {% if selected_month == '8' %}selected{% endif %}>August</option>
-      <option value="9" {% if selected_month == '9' %}selected{% endif %}>September</option>
-      <option value="10" {% if selected_month == '10' %}selected{% endif %}>October</option>
-      <option value="11" {% if selected_month == '11' %}selected{% endif %}>November</option>
-      <option value="12" {% if selected_month == '12' %}selected{% endif %}>December</option>
-    </select> 
+      {% for num in range(1, 13) %}
+      <option value="{{ num }}" {% if birthdays['birthmonth'] == num %}selected{% endif %}>{{ ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"][num-1] }}</option>
+      {% endfor %}
+    </select>
 
     <select id="birth-day" name="birthdate[day]">
       {% for num in range(1, 32) %}
-      <option value={{num}} {% if (request.form.get('birthdate[day]') or birthdays['birthday']|string) == num|string %}selected{% endif %}>{{num}}</option>
+      <option value="{{ num }}" {% if birthdays['birthday'] == num %}selected{% endif %}>{{ num }}</option>
       {% endfor %}
     </select>
+
     <select id="birth-year" name="birthdate[year]">
       {% for num in range(now.year - 55, now.year + 1) %}
-      <option value={{num}} {% if (request.form.get('birthdate[year]') or birthdays['birthyear']|string) == num|string %}selected{% endif %}>{{num}}</option>
+      <option value="{{ num }}" {% if birthdays['birthyear'] == num %}selected{% endif %}>{{ num }}</option>
       {% endfor %}
     </select>
     <br>
-    <input type="submit" value="Save">
+    <button type="submit">Save</button>
   </form> 
-  <form action="{{ url_for('bday.delete', id=birthdays['id']) }}" method="post">
-    <input class="danger" type="submit" value="Delete" onclick="return confirm('Are you sure?');">
+
+  <form id="delete-form" data-id="{{ birthdays['id'] }}">
+    <button class="danger" type="submit">Delete</button>
   </form>
+
+  <p id="response-msg" style="color: green;"></p>
+
+  <script>
+    const updateForm = document.getElementById('update-form');
+    const deleteForm = document.getElementById('delete-form');
+    const message = document.getElementById('response-msg');
+
+    updateForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = updateForm.dataset.id;
+      console.log(id);
+
+      const title = updateForm.querySelector('input[name="title"]')?.value?.trim();
+      const body = updateForm.querySelector('textarea[name="body"]')?.value?.trim();
+      const day = updateForm.querySelector('select[name="birthdate[day]"]')?.value;
+      const month = updateForm.querySelector('select[name="birthdate[month]"]')?.value;
+      const year = updateForm.querySelector('select[name="birthdate[year]"]')?.value;
+
+      const data = {
+        title,
+        body,
+        birthdate: {
+          month,
+          day,
+          year
+        }
+      };
+
+      const res = await fetch(`/update/${id}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      });
+
+      const result = await res.json();
+      message.style.color = result.success ? 'green' : 'red';
+      message.textContent = result.message || result.error || '';
+
+      if (result.success && result.redirect) {
+        window.location.href = result.redirect;
+      }
+    });
+
+    deleteForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = deleteForm.dataset.id;
+      if (!confirm("Are you sure you want to delete this?")) return;
+
+      const res = await fetch(`/delete/${id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      const result = await res.json();
+      if (result.success) {
+        window.location.href = '/home';
+      } else {
+        message.style.color = 'red';
+        message.textContent = result.error || 'Failed to delete birthday.';
+      }
+    });
+  </script>
 {% endblock %}

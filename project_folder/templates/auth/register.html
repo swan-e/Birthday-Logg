@@ -5,16 +5,53 @@
 {% endblock %}
 
 {% block content %}
-  <form method="post">
+  <form id="registerForm">
     <label for="username">Username</label>
-    <input name="username" id="username" required>
+    <input name="username" id="username" required autocomplete="username">
     <br>
     <label for="password">Password</label>
-    <input type="password" name="password" id="password" required>
+    <input type="password" name="password" id="password" required autocomplete="new-password">
     <br>
     <ul class="auth-links">
       <li><input type="submit" value="Register"></li>
     </ul>
-    
+    <div id="registerError" style="color: red;"></div>
+    <div id="registerSuccess" style="color: green;"></div>
   </form>
+
+  <script>
+    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      const registerError = document.getElementById('registerError');
+      const registerSuccess = document.getElementById('registerSuccess');
+
+      registerError.textContent = '';
+      registerSuccess.textContent = '';
+
+      try {
+        const response = await fetch('/auth/register', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ username, password }),
+          credentials: 'include'
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          registerSuccess.textContent = 'Registration successful! Redirecting to login...';
+          setTimeout(() => {
+            window.location.href = '/auth/login';
+          }, 1500);
+        } else {
+          registerError.textContent = data.error || 'Registration failed.';
+        }
+      } catch (err) {
+        registerError.textContent = 'Network error, please try again.';
+      }
+    });
+  </script>
 {% endblock %}

@@ -5,16 +5,47 @@
 {% endblock %}
 
 {% block content %}
-  <form method="post">
+  <form id="loginForm">
     <label for="username">Username</label>
-    <input name="username" id="username" required>
+    <input name="username" id="username" required autocomplete="username">
     <br>
     <label for="password">Password</label>
-    <input type="password" name="password" id="password" required>
+    <input type="password" name="password" id="password" required autocomplete="current-password">
     <br>
     <ul class="auth-links">
       <li><input type="submit" value="Log In"></li>
     </ul>
-    
+    <div id="loginError" style="color: red;"></div>
   </form>
+
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();  
+
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      const loginError = document.getElementById('loginError');
+
+      loginError.textContent = '';
+
+      try {
+        const response = await fetch('/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password }),
+          credentials: 'include' 
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          location.replace('/home')
+        } else {
+          loginError.textContent = data.error || 'Login failed.';
+        }
+      } catch (err) {
+        loginError.textContent = 'Network error, please try again.';
+      }
+    });
+  </script>
 {% endblock %}

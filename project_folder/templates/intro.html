@@ -15,25 +15,36 @@
       <div class="overlap-group-wrapper">
         <div class="overlap-group">
           <div class="rectangle" aria-hidden="true"></div>
-          <div class = "logo">
-            <h1 class="birthday-logg">Birthday Logg</h1>
+          
+          <div class="logo">
+            <h1 class="birthday-logg" id="intro-message">Birthday Logg</h1>
           </div>
+          
           <img class="bday-background" src="{{ url_for('static', filename='img/bdaylog.png') }}" alt="Calendar illustration" />
           
           <div class="auth">
             {% block content %}
             <ul class="auth-links">
-              <li><a href="{{ url_for('auth.register') }}">Register</a>
-              <li><a href="{{ url_for('auth.login') }}">Log In</a>
+              <li><a href="{{ url_for('auth.register') }}">Register</a></li>
+              <li><a href="{{ url_for('auth.login') }}">Log In</a></li>
             </ul>
             {% endblock %}
           </div>
-          </a>
-      
-          
         </div>
         <p class="tagline">Never Forget A Birthday</p>
       </div>
     </main>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('registerBtn').addEventListener('click', () => {
+          window.location.href = '/auth/register';  // or use {{ url_for('auth.register') }} if injected via Jinja
+        });
+
+        document.getElementById('loginBtn').addEventListener('click', () => {
+          window.location.href = '/auth/login';  // or use {{ url_for('auth.login') }}
+        });
+      });
+    </script>
   </body>
 </html>

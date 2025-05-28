@@ -1,12 +1,15 @@
 import os 
 from datetime import datetime, timezone
 
-from flask import Flask
+from quart import Quart
 from dotenv import load_dotenv
 
 
 def create_app(test_config=None):
-    app = Flask(__name__, instance_relative_config=True)
+    app = Quart(__name__, instance_relative_config=True)
+
+    app.config['DEBUG'] = True
+    app.config['ENV'] = 'development'
 
     @app.context_processor
     def inject_now():
@@ -30,10 +33,10 @@ def create_app(test_config=None):
     from . import db
     db.init_app(app)
 
-    from . import auth
+    from .api import auth
     app.register_blueprint(auth.bp)
 
-    from . import bday
+    from .api import bday
     app.register_blueprint(bday.bp)
     app.add_url_rule('/', endpoint='index')
     
