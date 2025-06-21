@@ -2,7 +2,7 @@
 
 <div align="center">
     <h1>Birthday Logg</h1>
-    <a href="https://quart.palletsprojects.com/en/latest/#">Quart</a>
+    <a href="https://fastapi.tiangolo.com/">FastAPI</a>
     <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
     <a href="https://github.com/swan-e">My Github</a>
     <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
