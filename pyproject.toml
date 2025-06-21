@@ -1,0 +1,31 @@
+[project]
+name = "birthday-log-app"
+version = "0.1.0"
+description = "A FastAPI based birthday logging app"
+authors = [{ name = "Sean Fleming", email = "seanafleming2003@gmail.com"}]
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "sqlalchemy",
+    "asyncpg",
+    "pydantic",
+    "pydantic-settings>=2.0",
+    "aiohttp"    
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-asyncio",
+    "httpx>0.24.0",
+    "pre-commit",
+    "flake8",
+    "black",
+    "mypy",
+    "isort",
+    "python-dotenv"
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
