@@ -4,6 +4,12 @@ FROM python:3.11-slim
 # Setting Working Directory
 WORKDIR /src
 
+# Running linux installs
+RUN apt-get update && apt-get install -y \
+    gcc \
+    netcat-openbsd \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY pyproject.toml ./
 
 COPY README.md ./
@@ -24,7 +30,7 @@ RUN if [ "$ENV" = "dev" ]; then \
 
 # Copy source code
 COPY src/ /src/src
-COPY /docs/scripts/ /src/scripts
+COPY docs/scripts/ /src/scripts
 
 # Make scripts executable
 RUN chmod +x /src/scripts/*.sh
